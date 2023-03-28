@@ -1,0 +1,77 @@
+---
+ - hosts: tomcatServer
+   gather_facts: no
+   become: true
+   tasks:
+    - name: install java
+      yum:
+       name: java-11-openjdk-devel
+       state: present
+    - name: create tomcat user
+      user:
+       name: tomcat
+       shell: /sbin/nologin
+    - name: install Tomcat
+      get_url:
+         url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.73/bin/apache-tomcat-9.0.73.tar.gz
+         dest: /tmp/
+    - name: copy the file
+      copy:
+        src: /tmp/apache-tomcat-9.0.70.tar.gz
+        dest: /usr/local/
+        remote_src: yes
+    - name: unzip the file
+      unarchive:
+         src: /usr/local/apache-tomcat-9.0.73.tar.gz
+         dest: /usr/local/
+         remote_src: yes
+    - name: change file ownshership and group
+      file:
+        path: /usr/local/apache-tomcat-9.0.73
+        owner: tomcat
+        group: tomcat
+        recurse: yes
+        state: directory
+    - name: create tomcat sym link
+      file:
+         src: /usr/local/apache-tomcat-9.0.73
+         dest: /usr/local/tomcat7
+         owner: tomcat
+         group: tomcat
+         state: link
+    - name: create tomcat service
+      file:
+        path: /etc/systemd/system/tomcat.service
+        state: touch
+    - name: edit tomcat service
+      tags: edit
+      blockinfile:
+            dest: /etc/systemd/system/tomcat.service
+            insertafter:
+            block: |
+                  [Unit]
+                  Description = Apache Tomcat 9
+                  After = syslog.target network.target
+                  [Service]
+                  User = tomcat
+                  Group = tomcat
+                  Type = oneshot
+                  PIDFile =/usr/local/apache-tomcat-9.0.73/tomcat.pid
+                  RemainAfterExit = yes
+                  ExecStart =/usr/local/apache-tomcat-9.0.73/bin/startup.sh
+                  ExecStop =/usr/local/apache-tomcat-9.0.73/bin/shutdown.sh
+                  ExecReStart =/usr/local/apache-tomcat-9.0.73/bin/shutdown.sh;/usr/local/apache-tomcat-9.0.73/bin/startup.sh
+                  [Install]
+                  WantedBy = multi-user.target
+    - name: change tomcat.service file permissions
+      file:
+        path: /etc/systemd/system/tomcat.service
+        mode: 0777
+    - name: start Tomcat
+      systemd:
+          name: tomcat.service
+          state: started
+          daemon_reload: yes
+          enabled: yes
+      
+      
