@@ -17,7 +17,7 @@
          dest: /tmp/
     - name: copy the file
       copy:
-        src: /tmp/apache-tomcat-9.0.70.tar.gz
+        src: /tmp/apache-tomcat-9.0.73.tar.gz
         dest: /usr/local/
         remote_src: yes
     - name: unzip the file
