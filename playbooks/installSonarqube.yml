@@ -1,0 +1,57 @@
+---
+ - hosts: sonarqubeServer
+   gather_facts: no
+   become: true
+   tasks:
+     - name: install packages
+       tags: install
+       yum:
+         name: "{{ item }}"
+         state: present
+       with_items:
+          - java-11-openjdk-devel
+          - unzip
+     - name: install sonarqube
+       tags: install sona
+       get_url:
+         url: https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.6.1.59531.zip
+         dest: /opt
+     - name: unpack the compressed directory
+       tags: unpack
+       unarchive:
+         src: /opt/sonarqube-9.6.1.59531.zip
+         dest: /opt/
+         remote_src: yes
+     - name: rename sonarqube directory
+       tags: rename
+       shell:
+          mv /opt/sonarqube-9.6.1.59531 /opt/sonarqube
+     - name: create sonar user
+       tags: create
+       user:
+         name: sonar
+         create_home: yes
+         shell: /bin/bash
+         comment: "sonarqube management account"
+         password: "{{ 'sonar' | password_hash('sha512') }}"
+         expires: -1
+     - name: add sonar user to sudoers group
+       tags: add
+       copy:
+         content: 'sonar ALL=(ALL) NOPASSWD:ALL'
+         dest: /etc/sudoers.d/sonar
+         validate: /usr/sbin/visudo -cf %s
+     - name: change the group permission and ownership of sonarqube
+       tags: change
+       file:
+         path: /opt/sonarqube
+         owner: sonar
+         group: sonar
+         mode: 0775
+         recurse: yes
+         state: directory
+#     - name: start the sonarqube
+ #      remote_user: ec2-user
+  #     script:
+   #      cmd: /opt/sonarqube/bin/linux-x86-64/sonar.sh start
+

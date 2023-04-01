@@ -8,6 +8,6 @@ resource "aws_instance" "AWSInstance"{
     key_name = "devopsmss"
     security_groups = ["launch-wizard-1"]
     tags = {
-        Name = "tomcatServer"
+        Name = "nexusServer"
     }
 }

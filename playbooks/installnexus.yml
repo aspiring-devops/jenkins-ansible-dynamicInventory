@@ -1,0 +1,77 @@
+---
+ - hosts: nexusServer
+   gather_facts: no
+   become: true
+   tasks:
+     - name: install java
+       yum:
+         name: java-1.8.0-openjdk-devel
+         state: present
+     - name: install nexus from url
+       get_url:
+         url: https://download.sonatype.com/nexus/3/nexus-3.43.0-01-unix.tar.gz
+         dest: /opt
+     - name: unzip the compressed file
+       unarchive:
+          src: /opt/nexus-3.43.0-01-unix.tar.gz
+          dest: /opt/
+          remote_src: yes
+     - name: rename the nexus directory
+       shell:
+           mv /opt/nexus-3.43.0-01 /opt/nexus
+     - name: create tomcat user
+       user:
+         name: nexus
+         create_home: true
+         shell: /bin/bash
+         comment: "nexus management user"
+         password: "{{ 'nexus' | password_hash('sha512') }}"
+         expires: -1
+     - name: add nexus user to sudoers group
+       copy:
+         content: 'nexus ALL=(ALL) NOPASSWD:ALL'
+         dest: /etc/sudoers.d/nexus
+         validate : /usr/sbin/visudo -cf %s
+     - name: change the group and owner of nexus directory
+       file:
+          path: /opt/nexus
+          owner: nexus
+          group: nexus
+          mode: 0775
+          recurse: yes
+          state: directory
+     - name: change the ownership and group of /opt/sonatype-work
+       file:
+          path: /opt/sonatype-work
+          owner: nexus
+          group: nexus
+          mode: 0775
+          recurse: yes
+          state: directory
+     - name: set the run_as_user parameter in nexus.rc
+       lineinfile:
+         path: /opt/nexus/bin/nexus.rc
+         regexp: "#run_as_user="
+         line: "run_as_user=nexus"
+         backrefs: true
+     - name: create soft link for nexus
+       file:
+         src: /opt/nexus/bin/nexus
+         dest: /etc/init.d/nexus
+         state: link
+     - name: start nexus
+       systemd:
+         name: nexus
+         state: started
+         daemon_reload: yes
+         enabled : yes
+     - name: read nexus default password
+       tags: read
+       shell:
+         cat /opt/sonatype-work/nexus3/admin.password
+       register: result
+     - name: print the result
+       tags: print
+       debug:
+          var: result.stdout
+
