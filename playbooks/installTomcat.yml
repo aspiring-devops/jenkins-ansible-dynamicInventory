@@ -1,5 +1,5 @@
 ---
- - hosts: tomcatServer
+ - hosts: tomcatNewServer
    gather_facts: no
    become: true
    tasks:
