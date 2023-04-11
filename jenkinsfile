@@ -1,0 +1,31 @@
+pipeline{
+    agent{
+        label('ansibleNewNode')
+    }
+    environment{
+        AWS_PRIVATE_KEY=credentials('ec2instance-private-key')
+    }
+    stages{
+      stage('CheckoutCode'){
+        steps{
+            git credentialsId: '10041685-87c8-494d-bba7-cff68d474680', url: 'https://github.com/aspiring-devops/jenkins-ansible-dynamicInventory.git'
+        }
+      }
+      stage('ExecuteSonarqubeReport'){
+        steps{
+            sh "terraform -chdir=terraformscripts init"
+            sh "terraform -chdir=terraformscripts apply -auto-approve"
+        }
+      }
+      stage('RunAniblePlaybook'){
+        steps{
+            sh "ansible-inventory -i inventory/aws_ec2.yaml --graph"
+            sh "ansible-playbook -i inventory/aws_ec2.yaml playbooks/installSonarqube.yml --private-key=$AWS_PRIVATE_KEY --ssh-common-args='-o StrictHostKeyChecking=no'"
+        }
+      }
+
+
+
+
+    }//stages closing
+}//pipeline closing
