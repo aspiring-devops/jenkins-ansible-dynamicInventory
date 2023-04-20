@@ -9,16 +9,16 @@
          state: present
      - name: install nexus from url
        get_url:
-         url: https://download.sonatype.com/nexus/3/nexus-3.43.0-01-unix.tar.gz
+         url: https://download.sonatype.com/nexus/3/nexus-3.47.1-01-unix.tar.gz
          dest: /opt
      - name: unzip the compressed file
        unarchive:
-          src: /opt/nexus-3.43.0-01-unix.tar.gz
+          src: /opt/nexus-3.47.1-01-unix.tar.gz
           dest: /opt/
           remote_src: yes
      - name: rename the nexus directory
        shell:
-           mv /opt/nexus-3.43.0-01 /opt/nexus
+           mv /opt/nexus-3.47.1-01 /opt/nexus
      - name: create tomcat user
        user:
          name: nexus
