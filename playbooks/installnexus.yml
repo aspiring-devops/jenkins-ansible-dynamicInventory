@@ -19,7 +19,7 @@
      - name: rename the nexus directory
        shell:
            mv /opt/nexus-3.47.1-01 /opt/nexus
-     - name: create tomcat user
+     - name: create nexus user
        user:
          name: nexus
          create_home: true
