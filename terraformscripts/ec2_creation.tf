@@ -6,7 +6,7 @@ resource "aws_instance" "AWSInstance"{
     ami = "ami-0e07dcaca348a0e68"
     instance_type = "t2.medium"
     key_name = "devopsmss"
-    security_groups = ["launch-wizard-5"]
+    security_groups = ["launch-wizard-2"]
     tags = {
         Name = "nexusServer"
     }
