@@ -8,6 +8,6 @@ resource "aws_instance" "AWSInstance"{
     key_name = "devopsmss"
     security_groups = ["launch-wizard-2"]
     tags = {
-        Name = "nexusServer"
+        Name = "sonarqubeServer"
     }
 }
